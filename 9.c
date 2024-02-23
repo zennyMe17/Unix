@@ -30,3 +30,35 @@ int main(int argc, char *argv[]) {
     exit(0);
 }
 
+
+
+
+
+#include <stdio.h>
+#include <dirent.h>
+#include <stdlib.h>
+
+int main() {
+    char dirname[100];
+    DIR *p;
+    struct dirent *d;
+
+    printf("Enter directory name:\n");
+    scanf("%s", dirname);
+
+    p = opendir(dirname);
+    if (p == NULL) {
+        perror("Cannot open directory");
+        exit(EXIT_FAILURE);
+    }
+
+    while ((d = readdir(p)) != NULL) {
+        printf("%s\n", d->d_name);
+    }
+
+    closedir(p);
+
+    return 0;
+}
+
+
