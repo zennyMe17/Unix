@@ -1,1 +1,471 @@
+7 1b
+#include <unistd.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <stdio.h>
+
+int main(int argc, char *argv[]) {
+    struct dirent *dir;
+    struct stat mystat;
+    DIR *dp;
+
+    dp = opendir(".");
+    if (dp) {
+        while (dir = readdir(dp)) {
+            stat(dir->d_name, &mystat);
+
+            // Print file details
+            printf("%ld\t%d\t%d\t%ld\t%ld\t%ld\t%lu\t%s\t%s\t",
+                   mystat.st_ino, mystat.st_uid, mystat.st_gid,
+                   mystat.st_blksize, mystat.st_blocks, mystat.st_size,
+                   mystat.st_nlink, ctime(&mystat.st_atime), dir->d_name);
+
+            printf("\nFile Permissions User\n");
+
+            // Print user permissions
+            printf((mystat.st_mode & S_IRUSR) ? "r" : ".");
+            printf((mystat.st_mode & S_IWUSR) ? "w" : ".");
+            printf((mystat.st_mode & S_IXUSR) ? "x" : ".");
+            printf("\n");
+
+            printf("\nFile Permissions Group\n");
+
+            // Print group permissions
+            printf((mystat.st_mode & S_IRGRP) ? "r" : ".");
+            printf((mystat.st_mode & S_IWGRP) ? "w" : ".");
+            printf((mystat.st_mode & S_IXGRP) ? "x" : ".");
+            printf("\n");
+
+            printf("\nFile Permissions Other\n");
+
+            // Print other permissions
+            printf((mystat.st_mode & S_IROTH) ? "r" : ".");
+            printf((mystat.st_mode & S_IWOTH) ? "w" : ".");
+            printf((mystat.st_mode & S_IXOTH) ? "x" : ".");
+            printf("\n");
+        }
+
+       
+    } 
+
+    return 0;
+}
+
+
+
+
+===========================================================================
+
+#include<stdio.h>
+#include<fcntl.h>
+#include<unistd.h>
+#include<dirent.h>
+#include<sys/stat.h>
+
+int main()
+{
+
+	DIR *dp;
+	struct dirent *dir;
+	
+	int fd,n;
+	dp=opendir(".");
+	
+	if (dp)
+	{
+		while((dir=readdir(dp))!=NULL)
+		{
+			fd=open(dir->d_name, O_RDWR,0777);
+			n=lseek(fd,0,SEEK_END);
+			if(!n)
+			{
+				unlink(dir->d_name);
+
+			}
+		}
+	}
+}
+
+
+*********************************************************************
+8ab
+
+
+
+#include<stdio.h>
+#include<unistd.h>
+#include<sys/types.h>
+#include<sys/stat.h>
+#include<fcntl.h>
+int main()
+{
+int fd1=0,fd2=0;
+char buf[50];
+if((fd1=open("t12.txt", O_RDWR,0))<0)
+printf("file open error");
+
+fd2=dup(fd1);
+
+read(fd1, buf,12);
+lseek(fd2, 0L, SEEK_END);
+write(fd2, buf, 12);
+
+return 0;
+}
+
+
+===========================================================================
+
+#include <unistd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include <stdio.h>
+
+int main() {
+    DIR *d;
+    struct dirent *dir;
+
+    d = opendir(".");
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            printf("%s\n", dir->d_name);
+        }
+        closedir(d);
+    }
+    
+    return 0;
+}
+
+*********************************************************************************
+9ab
+
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+    int f1, f2;
+    char buf[50];
+    ssize_t n;
+
+    if (((f1 = open(argv[1], O_RDONLY)) == -1) || ((f2 = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0700)) == -1)) {
+        perror("File open error");
+        exit(1);
+    }
+
+    while ((n = read(f1, buf, sizeof(buf))) > 0) {
+        if (write(f2, buf, n) != n) {
+            perror("Problem in writing");
+            exit(3);
+        }
+    }
+
+    if (n == -1) {
+        perror("Problem in reading");
+        exit(2);
+    }
+
+    close(f1);
+    close(f2);
+    exit(0);
+}
+
+
+
+
+
+===========================================================================
+
+
+    
+
+#include <stdio.h>
+#include <dirent.h>
+#include <stdlib.h>
+
+int main() {
+    char dirname[100];
+    DIR *p;
+    struct dirent *d;
+
+    printf("Enter directory name:\n");
+    scanf("%s", dirname);
+
+    p = opendir(dirname);
+    if (p == NULL) {
+        perror("Cannot open directory");
+        exit(EXIT_FAILURE);
+    }
+
+    while ((d = readdir(p)) != NULL) {
+        printf("%s\n", d->d_name);
+    }
+
+    closedir(p);
+
+    return 0;
+}
+
+***********************************************************************************
+10 ab
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
+int main() {
+    int fd1[2];
+    int fd2[2];
+    char fixed_str[] = "Security.org";
+    char input_str[100];
+    pid_t p;
+
+    if (pipe(fd1) == -1) {
+        fprintf(stderr, "Pipe Failed");
+        return 1;
+    }
+
+    if (pipe(fd2) == -1) {
+        fprintf(stderr, "Pipe Failed");
+        return 1;
+    }
+
+    scanf("%s", input_str);
+
+    p = fork();
+
+    if (p < 0) {
+        fprintf(stderr, "fork Failed");
+        return 1;
+    } else if (p > 0) {
+        char concat_str[100];
+        close(fd1[0]);
+        write(fd1[1], input_str, strlen(input_str) + 1);
+        close(fd1[1]);
+        wait(NULL);
+        close(fd2[1]);
+        read(fd2[0], concat_str, 100);
+        printf("Concatenated string %s\n", concat_str);
+        close(fd2[0]);
+    } else {
+        close(fd1[1]);
+        char concat_str[100];
+        read(fd1[0], concat_str, 100);
+        int k = strlen(concat_str);
+        int i;
+        for (i = 0; i < strlen(fixed_str); i++)
+            concat_str[k++] = fixed_str[i];
+        concat_str[k] = '\0';
+        close(fd1[0]);
+        close(fd2[0]);
+        write(fd2[1], concat_str, strlen(concat_str) + 1);
+        close(fd2[1]);
+        exit(0);
+    }
+
+    return 0;
+}
+
+
+
+======================================================================
+
+#include <stdio.h>
+#include <string.h>
+
+void main() {
+    char fn[10], pt[10], temp[200];
+    FILE *fp;
+
+    printf("Enter file name\n");
+    scanf("%s", fn);
+    printf("Enter pattern to be searched\n");
+    scanf("%s", pt);
+
+    fp = fopen(fn, "r");
+
+    while (!feof(fp)) {
+        fgets(temp, 200, fp);
+        if (strstr(temp, pt))
+            printf("Strings are matching and the string is %s", temp);
+    }
+
+    fclose(fp);
+}
+
+******************************************************************************
+11ab
+
+<Student>
+    <Name>Alex</Name>
+    <USN>1RITCS001</USN>
+    <DeptName>CSE</DeptName>
+</Student>
+<Department>
+    <Name>CSE</Name>
+    <Id>01</Id>
+    <TotalNumberOfEnrolledStudents>170</TotalNumberOfEnrolledStudents>
+</Department>
+<Student>
+    <Name>Smith</Name>
+    <USN>1RITDS040</USN>
+    <DeptName>DS</DeptName>
+</Student>
+<Department>
+    <Name>DS</Name>
+    <Id>02</Id>
+    <TotalNumberOfEnrolledStudents>188</TotalNumberOfEnrolledStudents>
+</Department>
+<Student>
+    <Name>Saliena</Name>
+    <USN>1RITCV051</USN>
+    <DeptName>Civil</DeptName>
+</Student>
+<Department>
+    <Name>Civil</Name>
+    <Id>03</Id>
+    <TotalNumberOfEnrolledStudents>160</TotalNumberOfEnrolledStudents>
+</Department>
+<Student>
+    <Name>Elizabeth</Name>
+    <USN>1RITME011</USN>
+    <DeptName>Mechanical</DeptName>
+</Student>
+<Department>
+    <Name>Mechanical</Name>
+    <Id>04</Id>
+    <TotalNumberOfEnrolledStudents>150</TotalNumberOfEnrolledStudents>
+</Department>
+
+1.
+->  sed "/Department/,/\Department/d" sample.xml student.xml 
+->  cat student.xml
+
+2.
+Now open a file for writing shell script to change from Name to Dept Name
+-> vi chang.sh
+-> sed "/Department/,/\/Department/s/Name/Dept Name/g" sample.xml >Department.xml
+-> sh chang.sh
+-> cat Department.xml
+
+3.
+-> sed -n '/USN/{s/.*<USN>//;s/<\/USN.*//;p;}' sample.xml
+-> sed -n '/USN/{s/.*<USN>//;s/<\/USN.*//;p;}' sample.xml > USN.txt
+-> cat USN.txt
+
+*****************************************************************************
+
+12 docker
+
+1.docker --version
+
+2.Creating a shell script to pass arguments and run in a container using Docker
+
+vi 1.sh
+
+#! bin/bash
+arg1=${1}
+arg2=${2}
+arg3=${3}
+while true; do
+echo “Argument1:$arg1”
+echo “Argument 2:$arg2”
+echo “Argument3:$arg3”
+sleep 1
+done
+
+3. Creating a docker file:
+
+mkdir dockerfiles
+cd dockerfiles
+ls
+cd ..
+cp 1.sh dockerfiles/
+
+
+4.once docker file is created:
+Go to terminal and type
+cd ..
+Then build a docker image by using below cmd in screenshots.
+-> sudo docker build -t scriptdemo:1.0 “/home/administrator/Desktop/dockerfiles”
+
+5.Now run the docker image, the name is given demo1 in this case, you could specify
+any name.
+-> docker run --name demo1 -d scriptdemo:1.0
+
+6.Now check the Container scriptdemo:1.0 is created in below screenshots. (In the first line..
+after CONTAINER ID IMAGE ..line)so here container Id is b67de89b8813
+
+-> docker ps -a
+
+Now execute the docker container with container id to get inside docker container.
+
+-> docker exec -it b67de89b8813 bin/bash
+
+6.You are inside a container, you are able to see the script 1.sh also
+Now execute script 1.sh with arguments inside container.
+
+-> sh 1.sh Hello cybersecurity students
+
+7.Once execution is done, then just type exit to exit the container.
+-> exit
+
+*****************************************************************************
+
+1. What is virtualization?
+Virtualization is the means of employing software to create a virtual version of a resource such as a server, data storage, or application.
+
+2. What is Docker?
+Docker is an open-source containerization platform. It is used to automate the deployment of any application, using lightweight, portable containers.
+
+3. What is a Container?
+Containers are deployed applications bundled with all necessary dependencies and configuration files. All of the elements share the same OS kernel. Since the container isn’t tied to any one IT infrastructure, it can run on a different system or the cloud.
+
+4.What is the fork () system call?
+This is used to create another process that duplicates the entire process structure and address space. The newly created process is called the child process and the one from which it got replicated is called the parent process. This was used to achieve parallelism before threads. 
+The fork() system call takes no arguments and returns an integer. 
+    0 means that the child process is created successfully, and 0 refers to the child process within the parent process. 
+    –1 means that the system was unable to create another process. 
+    default positive integer > 0 is returned to the parent process which represents the process ID of the child process.
+
+5. What is a daemon?
+
+A daemon is a background job or process responsible for a certain task or set of tasks. This is a fundamental concept to the Unix OS. The Unix kernel consists of numerous system daemons that are responsible for memory management, file system management, printer jobs, network connections, and several other services.
+
+6. What is System Call?
+
+In computing, a system call is a programmatic way in which a computer program requests a service from the kernel of the operating system it is executed on. A system call is a way for programs to interact with the operating system.
+
+7. What is API?
+
+An API, or application programming interface, is a set of rules or protocols that let software applications communicate with each other to exchange data, features and functionality.
+
+8. What is XML?
+
+XML is called Extensible Mark-up Language which is designed to carry or transport and store data. XML tags are not as predefined as HTML, but we can define our own user tags for simplicity. It mainly concentrates on storing of data, not on displaying of data.
+
+9. Features of XML?
+Main features of XML are:
+    Very easy to learn and implement
+    XML files are text files, and no editor is required
+    Minimal and a limited number of syntax rules in XML
+    It is extensible, and it specifies that structural rules of tags
+
+
+10.  Can we have empty XML tags?
+
+Yes, we can have empty tags in XML. Empty tags are used to indicate elements that have no textual content. Empty tags can be represented as
+ <person></person>
+
+ <person/>
+
+
 
